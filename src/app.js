@@ -27,9 +27,13 @@ const getLeagues = async venues => {
     rows.each((i, row) => {
       let fId = baseURL + $(row).find('.LFixtures').attr('href')
       let sId = baseURL + $(row).find('.LStandings').attr('href')
+      let name = $(row).find('.LTitle').text().trim()
+      let id = `${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`
 
-      l[`${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`] = {
-        name: $(row).find('.LTitle').text().trim(),
+      l[`${id}`] = {
+        name: name,
+        id: id,
+        nameLowercased: name.toLowerCase(),
         fixturesUrl: fId,
         standingUrl: sId,
         teams: [],
@@ -71,6 +75,8 @@ const getLeagueData = async leagues => {
       if (!teams[id]) {
         teams[id] = {
           name: name,
+          nameLowercased: name.toLowerCase(),
+          id: id,
           profileUrl: profile,
         }
       }
@@ -100,6 +106,7 @@ const getTeamData = async teamsData => {
             day: day,
             time: time,
             timestamp: new Date(`${day} ${time}`).getTime(),
+            grading: $(row).prev().text().indexOf('Grading') > -1,
             pitch: $(row).find('td:nth-child(3)').text(),
             vs: $(row).find('td:nth-child(4)').text(),
             result: $(row).find('td:nth-child(5)').text(),
@@ -107,6 +114,8 @@ const getTeamData = async teamsData => {
         )
       }
     })
+
+   teamsData[t].fixturesHash = sha1(JSON.stringify(teamsData[t].fixtures))
   }
 
   return teamsData
