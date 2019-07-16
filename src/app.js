@@ -114,29 +114,28 @@ const getTeamData = async teamsData => {
 
 
 const saveToFb = async (app, t, l, td) => {
+  for (id in t) {
+    const teamRef = app.database().ref('teams/' + id)
+    await teamRef.set(t[id])
+  }
+
+  for (id in td) {
+    const teamDataRef = app.database().ref('team-data/' + id)
+    await teamDataRef.set(td[id])
+  }
+
+  for (id in l) {
+    const leaguesRef = app.database().ref('leagues/' + id)
+    await leaguesRef.set(l[id])
+  }
+
   const configRef = app.database().ref('config')
-  configRef.set({
+  await configRef.set({
     updatedAt: Date.now(),
     teamsHash: sha1(JSON.stringify(t)),
     leaguesHash: sha1(JSON.stringify(l)),
     teamDataHash: sha1(JSON.stringify(td)),
   })
-
-  for (id in t) {
-    const teamRef = app.database().ref('teams/' + id)
-    teamRef.set(t[id])
-
-  }
-
-  for (id in td) {
-    const teamDataRef = app.database().ref('team-data/' + id)
-    teamDataRef.set(td[id])
-  }
-
-  for (id in l) {
-    const leaguesRef = app.database().ref('leagues/' + id)
-    leaguesRef.set(l[id])
-  }
 }
 
 const init = async () => {
@@ -144,8 +143,8 @@ const init = async () => {
   const venues = [
     `${baseURL}/ActionController/LeagueList?VenueId=5`,
     `${baseURL}/ActionController/LeagueList?VenueId=72`,
-    // `${baseURL}/ActionController/LeagueList?VenueId=8`,
-    // `${baseURL}/ActionController/LeagueList?VenueId=24`,
+    `${baseURL}/ActionController/LeagueList?VenueId=8`,
+    `${baseURL}/ActionController/LeagueList?VenueId=24`,
   ]
 
   let leagueList = await getLeagues(venues)
@@ -155,7 +154,7 @@ const init = async () => {
 
   const app = firebase.initializeApp(FBCONFIG)
   await saveToFb(app, teams, leagues, teamsData)
-  // app.database().goOffline()
+  await app.delete()
   console.log('all done')
 }
 
