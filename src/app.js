@@ -109,6 +109,7 @@ const getTeamData = async teamsData => {
             grading: $(row).prev().text().indexOf('Grading') > -1,
             pitch: $(row).find('td:nth-child(3)').text(),
             vs: $(row).find('td:nth-child(4)').text(),
+            vsId: getUrlParam(baseURL + '/' + $(row).find('td:nth-child(4) a').attr('href'), 'TeamId'),
             result: $(row).find('td:nth-child(5)').text(),
           }
         )
