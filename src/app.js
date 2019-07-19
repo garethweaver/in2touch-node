@@ -27,7 +27,7 @@ const getLeagues = async venues => {
     rows.each((i, row) => {
       let fId = baseURL + $(row).find('.LFixtures').attr('href')
       let sId = baseURL + $(row).find('.LStandings').attr('href')
-      let name = $(row).find('.LTitle').text().trim()
+      let name = $(row).find('.LTitle').text().trim().replace(/\r|\t|\n/g, '')
       let id = `${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`
 
       l[`${id}`] = {
