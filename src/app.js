@@ -89,10 +89,15 @@ const getLeagueData = async leagues => {
   }
 }
 
-const getTeamData = async teamsData => {
+const getTeamData = async (teamsData, leagueList) => {
   for (let t in teamsData) {
     let html = await getData(teamsData[t].profileUrl)
     let $ = cheerio.load(html)
+    let lURL = baseURL + $('.BackLinks a').attr('href')
+    let lID = `${getUrlParam(lURL, 'LeagueId')}-${getUrlParam(lURL, 'DivisionId')}`
+    let league = leagueList[lID]
+    let leagueName = league ? league.name : false
+
     let fixturesTable = $('.TFTable')
     teamsData[t].fixtures = []
     teamsData[t].id = t
@@ -108,6 +113,7 @@ const getTeamData = async teamsData => {
             timestamp: new Date(`${day} ${time}`).getTime(),
             grading: $(row).prev().text().indexOf('Grading') > -1,
             pitch: $(row).find('td:nth-child(3)').text(),
+            leagueName: leagueName,
             vs: $(row).find('td:nth-child(4)').text(),
             vsId: getUrlParam(baseURL + '/' + $(row).find('td:nth-child(4) a').attr('href'), 'TeamId'),
             result: $(row).find('td:nth-child(5)').text(),
@@ -160,7 +166,7 @@ const init = async () => {
   let leagueList = await getLeagues(venues)
   let { teams, leagues } = await getLeagueData(leagueList)
   let teamsData = JSON.parse(JSON.stringify(teams));
-  teamsData = await getTeamData(teamsData)
+  teamsData = await getTeamData(teamsData, leagueList)
 
   const app = firebase.initializeApp(FBCONFIG)
   await saveToFb(app, teams, leagues, teamsData)
