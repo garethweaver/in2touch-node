@@ -161,6 +161,7 @@ const init = async () => {
     `${baseURL}/ActionController/LeagueList?VenueId=72`,
     `${baseURL}/ActionController/LeagueList?VenueId=8`,
     `${baseURL}/ActionController/LeagueList?VenueId=24`,
+    `${baseURL}/ActionController/LeagueList?VenueId=7`,
   ]
 
   let leagueList = await getLeagues(venues)
