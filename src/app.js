@@ -1,8 +1,7 @@
 const axios = require('axios')
 const cheerio = require('cheerio')
-const firebase = require('firebase/app')
 const sha1 = require('sha1')
-require('firebase/database')
+const admin = require('firebase-admin')
 const FBCONFIG = require('./fbconfig.js')
 
 const baseURL = 'http://in2touch.spawtz.com'
@@ -169,7 +168,11 @@ const init = async () => {
   let teamsData = JSON.parse(JSON.stringify(teams));
   teamsData = await getTeamData(teamsData, leagueList)
 
-  const app = firebase.initializeApp(FBCONFIG)
+  const app = admin.initializeApp({
+    credential: admin.credential.cert(FBCONFIG),
+    databaseURL: 'https://in2touch-cc0ab.firebaseio.com'
+  })
+
   await saveToFb(app, teams, leagues, teamsData)
   await app.delete()
   console.log('all done')
