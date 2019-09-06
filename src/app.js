@@ -5,6 +5,7 @@ const admin = require('firebase-admin')
 const FBCONFIG = require('./fbconfig.js')
 
 const baseURL = 'http://in2touch.spawtz.com'
+const VENUES = require('./venues.js')
 
 const getData = async url => {
   const response = await axios(url)
@@ -154,16 +155,7 @@ const saveToFb = async (app, t, l, td) => {
 }
 
 const init = async () => {
-
-  const venues = [
-    `${baseURL}/ActionController/LeagueList?VenueId=5`,
-    `${baseURL}/ActionController/LeagueList?VenueId=72`,
-    `${baseURL}/ActionController/LeagueList?VenueId=8`,
-    `${baseURL}/ActionController/LeagueList?VenueId=24`,
-    `${baseURL}/ActionController/LeagueList?VenueId=7`,
-  ]
-
-  let leagueList = await getLeagues(venues)
+  let leagueList = await getLeagues(VENUES)
   let { teams, leagues } = await getLeagueData(leagueList)
   let teamsData = JSON.parse(JSON.stringify(teams));
   teamsData = await getTeamData(teamsData, leagueList)
