@@ -3,9 +3,8 @@ const cheerio = require('cheerio')
 const sha1 = require('sha1')
 const admin = require('firebase-admin')
 const FBCONFIG = require('./fbconfig.js')
-
-const baseURL = 'http://in2touch.spawtz.com'
 const VENUES = require('./venues.js')
+const BASE_URL = 'http://in2touch.spawtz.com'
 
 const getData = async url => {
   const response = await axios(url)
@@ -25,8 +24,8 @@ const getLeagues = async venues => {
     let rows = $('.LTable tr')
 
     rows.each((i, row) => {
-      let fId = baseURL + $(row).find('.LFixtures').attr('href')
-      let sId = baseURL + $(row).find('.LStandings').attr('href')
+      let fId = BASE_URL + $(row).find('.LFixtures').attr('href')
+      let sId = BASE_URL + $(row).find('.LStandings').attr('href')
       let name = $(row).find('.LTitle').text().trim().replace(/\r|\t|\n/g, '')
       let id = `${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`
 
@@ -52,9 +51,9 @@ const getLeagueData = async leagues => {
     let leagueTableRows = $('.STTable .STRow:not(first-child)')
 
     leagueTableRows.each((i, row) => {
-      let id = getUrlParam(baseURL + '/' + $(row).find('.STTeamCell a').attr('href'), 'TeamId')
+      let id = getUrlParam(BASE_URL + '/' + $(row).find('.STTeamCell a').attr('href'), 'TeamId')
       let name = $(row).find('.STTeamCell').text()
-      let profile = `${baseURL}/External/Fixtures/TeamProfile.aspx?TeamId=${id}`
+      let profile = `${BASE_URL}/External/Fixtures/TeamProfile.aspx?TeamId=${id}`
 
       leagues[l].teams.push(
         {
@@ -93,7 +92,7 @@ const getTeamData = async (teamsData, leagueList) => {
   for (let t in teamsData) {
     let html = await getData(teamsData[t].profileUrl)
     let $ = cheerio.load(html)
-    let lURL = baseURL + $('.BackLinks a').attr('href')
+    let lURL = BASE_URL + $('.BackLinks a').attr('href')
     let lID = `${getUrlParam(lURL, 'LeagueId')}-${getUrlParam(lURL, 'DivisionId')}`
     let league = leagueList[lID]
     let leagueName = league ? league.name : false
@@ -115,7 +114,7 @@ const getTeamData = async (teamsData, leagueList) => {
             pitch: $(row).find('td:nth-child(3)').text(),
             leagueName: leagueName,
             vs: $(row).find('td:nth-child(4)').text(),
-            vsId: getUrlParam(baseURL + '/' + $(row).find('td:nth-child(4) a').attr('href'), 'TeamId'),
+            vsId: getUrlParam(BASE_URL + '/' + $(row).find('td:nth-child(4) a').attr('href'), 'TeamId'),
             result: $(row).find('td:nth-child(5)').text(),
           }
         )
