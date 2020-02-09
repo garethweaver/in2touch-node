@@ -8,4 +8,5 @@ module.exports = [
   `${BASE_URL}?VenueId=7`,
   `${BASE_URL}?VenueId=118`,
   `${BASE_URL}?VenueId=93`,
+  `${BASE_URL}?VenueId=115`,
 ]
