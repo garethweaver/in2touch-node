@@ -6,8 +6,12 @@ const FBCONFIG = require('./fbconfig.js')
 const BASE_URL = 'http://in2touch.spawtz.com'
 
 const getData = async url => {
-  const response = await axios(url)
-  return response.data
+  try {
+    const response = await axios(url)
+    return response.data
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const getUrlParam = (url, param) => {
