@@ -3,7 +3,6 @@ const cheerio = require('cheerio')
 const sha1 = require('sha1')
 const admin = require('firebase-admin')
 const FBCONFIG = require('./fbconfig.js')
-const VENUES = require('./venues.js')
 const BASE_URL = 'http://in2touch.spawtz.com'
 
 const getData = async url => {
@@ -16,29 +15,27 @@ const getUrlParam = (url, param) => {
   return u.searchParams.get(param)
 }
 
-const getLeagues = async venues => {
+const getLeagues = async () => {
   let l = {}
-  for (let url of venues) {
-    let html = await getData(url)
-    let $ = cheerio.load(html)
-    let rows = $('.LTable tr')
+  let html = await getData(`${BASE_URL}/ActionController/LeagueList`)
+  let $ = cheerio.load(html)
 
-    rows.each((i, row) => {
-      let fId = BASE_URL + $(row).find('.LFixtures').attr('href')
-      let sId = BASE_URL + $(row).find('.LStandings').attr('href')
-      let name = $(row).find('.LTitle').text().trim().replace(/\r|\t|\n/g, '')
-      let id = `${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`
+  $('.LTable tr').each((i, row) => {
+    let fId = BASE_URL + $(row).find('.LFixtures').attr('href')
+    let sId = BASE_URL + $(row).find('.LStandings').attr('href')
+    let name = $(row).find('.LTitle').text().trim().replace(/\r|\t|\n/g, '')
+    let id = `${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`
 
-      l[`${id}`] = {
-        name: name,
-        id: id,
-        nameLowercased: name.toLowerCase(),
-        fixturesUrl: fId,
-        standingUrl: sId,
-        teams: [],
-      }
-    })
-  }
+    l[`${id}`] = {
+      name: name,
+      id: id,
+      nameLowercased: name.toLowerCase(),
+      fixturesUrl: fId,
+      standingUrl: sId,
+      teams: [],
+    }
+  })
+
   return l
 }
 
@@ -154,7 +151,7 @@ const saveToFb = async (app, t, l, td) => {
 }
 
 const init = async () => {
-  let leagueList = await getLeagues(VENUES)
+  let leagueList = await getLeagues()
   let { teams, leagues } = await getLeagueData(leagueList)
   let teamsData = JSON.parse(JSON.stringify(teams));
   teamsData = await getTeamData(teamsData, leagueList)
