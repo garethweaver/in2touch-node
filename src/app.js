@@ -49,7 +49,7 @@ const getLeagueData = async leagues => {
   for (let l in leagues) {
     let html = await getData(leagues[l].standingUrl)
     let $ = cheerio.load(html)
-    let leagueTableRows = $('.STTable .STRow:not(first-child)')
+    let leagueTableRows = $('.STTable tr[class^="STRow"]')
 
     leagueTableRows.each((i, row) => {
       let id = getUrlParam(BASE_URL + '/' + $(row).find('.STTeamCell a').attr('href'), 'TeamId')
@@ -157,7 +157,7 @@ const saveToFb = async (app, t, l, td) => {
 const init = async () => {
   let leagueList = await getLeagues()
   let { teams, leagues } = await getLeagueData(leagueList)
-  let teamsData = JSON.parse(JSON.stringify(teams));
+  let teamsData = JSON.parse(JSON.stringify(teams))
   teamsData = await getTeamData(teamsData, leagueList)
 
   const app = admin.initializeApp({
