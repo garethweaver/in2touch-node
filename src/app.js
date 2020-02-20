@@ -31,8 +31,8 @@ const getLeagues = async () => {
     let id = `${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`
 
     l[`${id}`] = {
-      name: name,
-      id: id,
+      name,
+      id,
       nameLowercased: name.toLowerCase(),
       fixturesUrl: fId,
       standingUrl: sId,
@@ -54,13 +54,13 @@ const getLeagueData = async leagues => {
     leagueTableRows.each((i, row) => {
       let id = getUrlParam(BASE_URL + '/' + $(row).find('.STTeamCell a').attr('href'), 'TeamId')
       let name = $(row).find('.STTeamCell').text()
-      let profile = `${BASE_URL}/External/Fixtures/TeamProfile.aspx?TeamId=${id}`
+      let profileUrl = `${BASE_URL}/External/Fixtures/${$(row).find('.STTeamCell a').attr('href')}`
 
       leagues[l].teams.push(
         {
-          name: name,
-          id: id,
-          profileUrl: profile,
+          name,
+          id,
+          profileUrl,
           played: $(row).find('td:nth-child(3)').text(),
           won: $(row).find('td:nth-child(4)').text(),
           lost: $(row).find('td:nth-child(5)').text(),
@@ -74,18 +74,18 @@ const getLeagueData = async leagues => {
 
       if (!teams[id]) {
         teams[id] = {
-          name: name,
+          name,
           nameLowercased: name.toLowerCase(),
-          id: id,
-          profileUrl: profile,
+          id,
+          profileUrl,
         }
       }
     })
   }
 
   return {
-    teams: teams,
-    leagues: leagues,
+    teams,
+    leagues,
   }
 }
 
@@ -108,8 +108,8 @@ const getTeamData = async (teamsData, leagueList) => {
       if (day.length > 0) {
         teamsData[t].fixtures.push(
           {
-            day: day,
-            time: time,
+            day,
+            time,
             timestamp: new Date(`${day} ${time}`).getTime(),
             grading: $(row).prev().text().indexOf('Grading') > -1,
             pitch: $(row).find('td:nth-child(3)').text(),
