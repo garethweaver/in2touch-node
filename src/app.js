@@ -1,3 +1,4 @@
+require('dotenv-safe').config()
 const axios = require('axios')
 const cheerio = require('cheerio')
 const sha1 = require('sha1')
@@ -155,9 +156,12 @@ const saveToFb = async (app, t, l, td) => {
 }
 
 const init = async () => {
+  console.log('Getting league list...')
   let leagueList = await getLeagues()
+  console.log('Geting teams and leagues...')
   let { teams, leagues } = await getLeagueData(leagueList)
   let teamsData = JSON.parse(JSON.stringify(teams))
+  console.log('Geting individual teams data...')
   teamsData = await getTeamData(teamsData, leagueList)
 
   const app = admin.initializeApp({
@@ -165,9 +169,11 @@ const init = async () => {
     databaseURL: 'https://in2touch-cc0ab.firebaseio.com'
   })
 
+  console.log('Saving to firebase...')
   await saveToFb(app, teams, leagues, teamsData)
+  console.log('Closing connection to firebase...')
   await app.delete()
-  console.log('all done')
+  console.log('All done!')
 }
 
 init()
