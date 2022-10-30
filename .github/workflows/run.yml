@@ -1,6 +1,10 @@
 name: run-crawler
 on:
   workflow_dispatch:
+  schedule:
+    # At minute 0 past every 3rd hour from 9 through 18.
+    # see https://crontab.guru/#0_9-18/3_*_*_*
+    - cron: 0 9-18/3 * * *
 jobs:
   run-crawler:
     runs-on: ubuntu-latest
