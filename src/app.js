@@ -16,20 +16,20 @@ const getData = async url => {
 }
 
 const getUrlParam = (url, param) => {
-  let u = new URL(url)
+  const u = new URL(url)
   return u.searchParams.get(param)
 }
 
 const getLeagues = async () => {
-  let l = {}
-  let html = await getData(`${BASE_URL}/ActionController/LeagueList`)
-  let $ = cheerio.load(html)
+  const l = {}
+  const html = await getData(`${BASE_URL}/ActionController/LeagueList`)
+  const $ = cheerio.load(html)
 
   $('.LTable tr').each((i, row) => {
-    let fId = BASE_URL + $(row).find('.LFixtures').attr('href')
-    let sId = BASE_URL + $(row).find('.LStandings').attr('href')
-    let name = $(row).find('.LTitle').text().trim().replace(/\r|\t|\n/g, '')
-    let id = `${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`
+    const fId = BASE_URL + $(row).find('.LFixtures').attr('href')
+    const sId = BASE_URL + $(row).find('.LStandings').attr('href')
+    const name = $(row).find('.LTitle').text().trim().replace(/\r|\t|\n/g, '')
+    const id = `${getUrlParam(fId, 'LeagueId')}-${getUrlParam(fId, 'DivisionId')}`
 
     l[`${id}`] = {
       name,
@@ -45,17 +45,17 @@ const getLeagues = async () => {
 }
 
 const getLeagueData = async leagues => {
-  let teams = {}
+  const teams = {}
 
-  for (let l in leagues) {
-    let html = await getData(leagues[l].standingUrl)
-    let $ = cheerio.load(html)
-    let leagueTableRows = $('.STTable tr[class^="STRow"]')
+  for (const l in leagues) {
+    const html = await getData(leagues[l].standingUrl)
+    const $ = cheerio.load(html)
+    const leagueTableRows = $('.STTable tr[class^="STRow"]')
 
     leagueTableRows.each((i, row) => {
-      let id = getUrlParam(BASE_URL + '/' + $(row).find('.STTeamCell a').attr('href'), 'TeamId')
-      let name = $(row).find('.STTeamCell').text()
-      let profileUrl = `${BASE_URL}/External/Fixtures/${$(row).find('.STTeamCell a').attr('href')}`
+      const id = getUrlParam(BASE_URL + '/' + $(row).find('.STTeamCell a').attr('href'), 'TeamId')
+      const name = $(row).find('.STTeamCell').text()
+      const profileUrl = `${BASE_URL}/External/Fixtures/${$(row).find('.STTeamCell a').attr('href')}`
 
       leagues[l].teams.push(
         {
@@ -91,15 +91,15 @@ const getLeagueData = async leagues => {
 }
 
 const getTeamData = async (teamsData, leagueList) => {
-  for (let t in teamsData) {
-    let html = await getData(teamsData[t].profileUrl)
-    let $ = cheerio.load(html)
-    let lURL = BASE_URL + $('.BackLinks a').attr('href')
-    let lID = `${getUrlParam(lURL, 'LeagueId')}-${getUrlParam(lURL, 'DivisionId')}`
-    let league = leagueList[lID]
-    let leagueName = league ? league.name : false
+  for (const t in teamsData) {
+    const html = await getData(teamsData[t].profileUrl)
+    const $ = cheerio.load(html)
+    const lURL = BASE_URL + $('.BackLinks a').attr('href')
+    const lID = `${getUrlParam(lURL, 'LeagueId')}-${getUrlParam(lURL, 'DivisionId')}`
+    const league = leagueList[lID]
+    const leagueName = league ? league.name : false
 
-    let fixturesTable = $('.TFTable')
+    const fixturesTable = $('.TFTable')
     teamsData[t].fixtures = []
     teamsData[t].id = t
 
@@ -157,10 +157,10 @@ const saveToFb = async (app, t, l, td) => {
 
 const init = async () => {
   console.log('Getting league list...')
-  let leagueList = await getLeagues()
+  const leagueList = await getLeagues()
   console.log('Geting teams and leagues...')
-  let { teams, leagues } = await getLeagueData(leagueList)
-  let teamsData = JSON.parse(JSON.stringify(teams))
+  const { teams, leagues } = await getLeagueData(leagueList)
+  const teamsData = JSON.parse(JSON.stringify(teams))
   console.log('Geting individual teams data...')
   teamsData = await getTeamData(teamsData, leagueList)
 
