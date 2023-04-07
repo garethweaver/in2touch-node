@@ -160,7 +160,7 @@ const init = async () => {
   const leagueList = await getLeagues()
   console.log('Geting teams and leagues...')
   const { teams, leagues } = await getLeagueData(leagueList)
-  const teamsData = JSON.parse(JSON.stringify(teams))
+  let teamsData = JSON.parse(JSON.stringify(teams))
   console.log('Geting individual teams data...')
   teamsData = await getTeamData(teamsData, leagueList)
 
