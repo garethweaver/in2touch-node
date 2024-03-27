@@ -1,9 +1,3 @@
-# Commands
+# In2TouchNode
 
-### Deploy
-
-`git push heroku master`
-
-### Run
-
-`heroku run yarn start`
+Node script to scrape data from in2touch website and save to FB.
