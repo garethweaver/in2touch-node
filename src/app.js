@@ -11,7 +11,11 @@ const getData = async url => {
     const response = await axios(url)
     return response.data
   } catch (e) {
-    console.error(e)
+    console.error({
+      status: e.response.status,
+      url,
+    })
+    return ''
   }
 }
 
