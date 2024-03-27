@@ -4,7 +4,7 @@ const cheerio = require('cheerio')
 const sha1 = require('sha1')
 const admin = require('firebase-admin')
 const FBCONFIG = require('./fbconfig.js')
-const BASE_URL = 'http://in2touch.spawtz.com'
+const BASE_URL = 'https://in2touch.spawtz.com'
 
 const getData = async url => {
   try {
@@ -59,7 +59,7 @@ const getLeagueData = async leagues => {
     leagueTableRows.each((i, row) => {
       const id = getUrlParam(BASE_URL + '/' + $(row).find('.STTeamCell a').attr('href'), 'TeamId')
       const name = $(row).find('.STTeamCell').text()
-      const profileUrl = `${BASE_URL}/External/Fixtures/${$(row).find('.STTeamCell a').attr('href')}`
+      const profileUrl = `${BASE_URL}${$(row).find('.STTeamCell a').attr('href')}`
 
       leagues[l].teams.push(
         {
