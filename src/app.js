@@ -11,7 +11,8 @@ const getData = async url => {
     const response = await axios(url)
     return response.data
   } catch (e) {
-    console.error(e)
+    console.error('⚠️', e.response.status, e.response.statusText, e.config.url)
+    return null
   }
 }
 
@@ -49,6 +50,10 @@ const getLeagueData = async leagues => {
 
   for (const l in leagues) {
     const html = await getData(leagues[l].standingUrl)
+    if (!html) {
+      console.log(`⚠️ Error getting data for ${leagues[l].name} ${leagues[l].id}`)
+      continue
+    }
     const $ = cheerio.load(html)
     const leagueTableRows = $('.STTable tr[class^="STRow"]')
 
@@ -93,6 +98,10 @@ const getLeagueData = async leagues => {
 const getTeamData = async (teamsData, leagueList) => {
   for (const t in teamsData) {
     const html = await getData(teamsData[t].profileUrl)
+    if (!html) {
+      console.log(`⚠️ Error getting data for ${teamsData[t].name} ${teamsData[t].id}`)
+      continue
+    }
     const $ = cheerio.load(html)
     const lURL = BASE_URL + $('.BackLinks a').attr('href')
     const lID = `${getUrlParam(lURL, 'LeagueId')}-${getUrlParam(lURL, 'DivisionId')}`
@@ -131,16 +140,19 @@ const getTeamData = async (teamsData, leagueList) => {
 
 
 const saveToFb = async (app, t, l, td) => {
+  console.log(`Saving ${Object.keys(t).length} teams...`)
   for (id in t) {
     const teamRef = app.database().ref('teams/' + id)
     await teamRef.set(t[id])
   }
 
+  console.log(`Saving ${Object.keys(td).length} team data...`)
   for (id in td) {
     const teamDataRef = app.database().ref('team-data/' + id)
     await teamDataRef.set(td[id])
   }
 
+  console.log(`Saving ${Object.keys(l).length} leagues...`)
   for (id in l) {
     const leaguesRef = app.database().ref('leagues/' + id)
     await leaguesRef.set(l[id])
@@ -173,7 +185,7 @@ const init = async () => {
   await saveToFb(app, teams, leagues, teamsData)
   console.log('Closing connection to firebase...')
   await app.delete()
-  console.log('All done!')
+  console.log('✅ All done!')
 }
 
 init()
