@@ -8,10 +8,20 @@ const BASE_URL = "https://in2touch.spawtz.com";
 
 const getData = async (url) => {
   try {
+    console.info(`Requesting ${url}`);
     const response = await axios(url);
     return response.data;
   } catch (e) {
-    console.error("⚠️", e.response.status, e.response.statusText, e.config.url);
+    if (e?.response) {
+      console.error(
+        "⚠️",
+        e.response.status,
+        e.response.statusText,
+        e.config.url,
+      );
+    } else {
+      comsole.error(e);
+    }
     return null;
   }
 };
