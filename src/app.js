@@ -31,6 +31,15 @@ const getUrlParam = (url, param) => {
   return u.searchParams.get(param);
 };
 
+const getLeagueType = (leagueName) => {
+  if (leagueName.toLowerCase().indexOf("mixed")) {
+    return " [Mixed]";
+  } else if (leagueName.toLowerCase().indexOf("men's")) {
+    return " [Men's]";
+  }
+  return "";
+};
+
 const getLeagues = async () => {
   const l = {};
   const html = await getData(`${BASE_URL}/ActionController/LeagueList`);
@@ -95,7 +104,20 @@ const getLeagueData = async (leagues) => {
         points: $(row).find("td:nth-child(13) b").text(),
       });
 
-      if (!teams[id]) {
+      // there is a team entered into multiple leagues so create multiple db entries
+      if (teams[id]) {
+        const num = 0;
+        // create an int for each new league
+        while (teams[`${id}-${num}`]) num++;
+        // try to work out if it's men's or mixed
+        const appendToTeamName = getLeagueType(name);
+        teams[`${id}-${num}`] = {
+          name: `${name} ${num + 1}${appendToTeamName}`,
+          nameLowercased: `${name} ${num + 1}${appendToTeamName}`.toLowerCase(),
+          id: `${id}-${num}`,
+          profileUrl,
+        };
+      } else {
         teams[id] = {
           name,
           nameLowercased: name.toLowerCase(),
