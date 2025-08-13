@@ -20,7 +20,7 @@ const getData = async (url) => {
         e.config.url,
       );
     } else {
-      comsole.error(e);
+      console.error(e);
     }
     return null;
   }
