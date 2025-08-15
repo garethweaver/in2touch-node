@@ -213,10 +213,10 @@ const saveToFb = async (app, t, l, td) => {
 const init = async () => {
   console.log("Getting league list...");
   const leagueList = await getLeagues();
-  console.log("Geting teams and leagues...");
+  console.log("Getting teams and leagues...");
   const { teams, leagues } = await getLeagueData(leagueList);
   let teamsData = JSON.parse(JSON.stringify(teams));
-  console.log("Geting individual teams data...");
+  console.log("Getting individual teams data...");
   teamsData = await getTeamData(teamsData, leagueList);
 
   const app = admin.initializeApp({
