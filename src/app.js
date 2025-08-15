@@ -106,7 +106,7 @@ const getLeagueData = async (leagues) => {
 
       // there is a team entered into multiple leagues so create multiple db entries
       if (teams[id]) {
-        const num = 0;
+        let num = 0;
         // create an int for each new league
         while (teams[`${id}-${num}`]) num++;
         // try to work out if it's men's or mixed
