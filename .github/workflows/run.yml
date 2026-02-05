@@ -22,3 +22,4 @@ jobs:
           CLIENT_EMAIL: ${{ secrets.CLIENT_EMAIL }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_X509_CERT_URL: ${{ secrets.CLIENT_X509_CERT_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
