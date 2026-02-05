@@ -4,7 +4,7 @@ const admin = require("firebase-admin");
 
 const app = admin.initializeApp({
   credential: admin.credential.cert(FBCONFIG),
-  databaseURL: "https://in2touch-cc0ab.firebaseio.com",
+  databaseURL: process.env.DATABASE_URL,
 });
 
 const init = async () => {

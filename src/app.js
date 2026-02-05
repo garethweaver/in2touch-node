@@ -221,7 +221,7 @@ const init = async () => {
 
   const app = admin.initializeApp({
     credential: admin.credential.cert(FBCONFIG),
-    databaseURL: "https://in2touch-cc0ab.firebaseio.com",
+    databaseURL: process.env.DATABASE_URL,
   });
 
   console.log("Saving to firebase...");
