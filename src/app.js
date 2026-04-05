@@ -157,11 +157,17 @@ const getTeamData = async (teamsData, leagueList) => {
       .find(".TFRow")
       .each((i, row) => {
         const day = $(row).find(".TFDate").text();
-        const time = $(row).find("td:nth-child(2)").text();
+        let time = $(row).find("td:nth-child(2)").text();
+
+        // check for byes
+        const isBye = time === "Bye";
+        if (isBye) time = "18:00"; // there is no time for byes so set one
+
         if (day.length > 0) {
           teamsData[t].fixtures.push({
+            type: isBye ? "bye" : "match",
             day,
-            time,
+            time: time,
             timestamp: new Date(`${day} ${time}`).getTime(),
             grading: $(row).prev().text().indexOf("Grading") > -1,
             pitch: $(row).find("td:nth-child(3)").text(),
