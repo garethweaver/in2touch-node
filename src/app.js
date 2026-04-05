@@ -149,7 +149,7 @@ const getTeamData = async (teamsData, leagueList) => {
     const league = leagueList[lID];
     const leagueName = league ? league.name : false;
 
-    const fixturesTable = $(".TFTable");
+    const fixturesTable = $(".TFTable").first();
     teamsData[t].fixtures = [];
     teamsData[t].id = t;
 
