@@ -2,9 +2,9 @@ name: run-crawler
 on:
   workflow_dispatch:
   schedule:
-    # At minute 0 past every 4th hour from 9 through 17
-    # see https://crontab.guru/#0_9-18/3_*_*_*
-    - cron: 0 9-17/4 * * *
+    # At 6am, 12pm (midday), and 5pm daily
+    # see https://crontab.guru/#0_6,12,17_*_*_*
+    - cron: 0 6,12,17 * * *
 jobs:
   run-crawler:
     runs-on: ubuntu-latest
