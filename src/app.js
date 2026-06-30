@@ -1,20 +1,24 @@
 require("dotenv-safe").config();
 const cheerio = require("cheerio");
 const sha1 = require("sha1");
-const pLimit = require("p-limit");
 const admin = require("firebase-admin");
 const { cert, getApp, deleteApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
 const FBCONFIG = require("./fbconfig.js");
-const { httpAgent, getData, withTimeout, getUrlParam } = require("./util.js");
+const {
+  httpAgent,
+  getData,
+  withTimeout,
+  getUrlParam,
+  fetchInParallel,
+  limit,
+} = require("./util.js");
 const BASE_URL = "https://in2touch.spawtz.com";
 
 // Disable excessive retries in Google Auth Library
 process.env.GCLOUD_PROJECT = process.env.PROJECT_ID;
 // Set gaxios (used by google-auth-library) to have minimal retries
 process.env.GAXIOS_RETRY = "0"; // Disable automatic retries in gaxios
-// Limit concurrent HTTP requests to avoid overwhelming the server
-const limit = pLimit(5); // Max 5 concurrent requests
 
 const getLeagueType = (leagueName) => {
   if (leagueName.toLowerCase().indexOf("mixed")) {
@@ -58,26 +62,20 @@ const getLeagueData = async (leagues) => {
   const leagueIds = Object.keys(leagues);
 
   // Fetch all leagues in parallel with concurrency limit
-  const results = await Promise.allSettled(
-    leagueIds.map((l) =>
-      limit(async () => {
-        const html = await getData(leagues[l].standingUrl);
-        if (!html) {
-          console.log(
-            `⚠️ Error getting data for ${leagues[l].name} ${leagues[l].id}`,
-          );
-          return null;
-        }
-        return { leagueId: l, html };
-      }),
-    ),
-  );
+  const results = await fetchInParallel(leagueIds, async (l) => {
+    const html = await getData(leagues[l].standingUrl);
+    if (!html) {
+      console.log(
+        `⚠️ Error getting data for ${leagues[l].name} ${leagues[l].id}`,
+      );
+      return null;
+    }
+    return { leagueId: l, html };
+  });
 
   // Process results
   for (const result of results) {
-    if (result.status === "rejected" || !result.value) continue;
-
-    const { leagueId: l, html } = result.value;
+    const { leagueId: l, html } = result;
     const $ = cheerio.load(html);
     const leagueTableRows = $('.STTable tr[class^="STRow"]');
 
@@ -137,26 +135,20 @@ const getTeamData = async (teamsData, leagueList) => {
   const teamIds = Object.keys(teamsData);
 
   // Fetch all team pages in parallel with concurrency limit
-  const results = await Promise.allSettled(
-    teamIds.map((t) =>
-      limit(async () => {
-        const html = await getData(teamsData[t].profileUrl);
-        if (!html) {
-          console.log(
-            `⚠️ Error getting data for ${teamsData[t].name} ${teamsData[t].id}`,
-          );
-          return null;
-        }
-        return { teamId: t, html };
-      }),
-    ),
-  );
+  const results = await fetchInParallel(teamIds, async (t) => {
+    const html = await getData(teamsData[t].profileUrl);
+    if (!html) {
+      console.log(
+        `⚠️ Error getting data for ${teamsData[t].name} ${teamsData[t].id}`,
+      );
+      return null;
+    }
+    return { teamId: t, html };
+  });
 
   // Process results
   for (const result of results) {
-    if (result.status === "rejected" || !result.value) continue;
-
-    const { teamId: t, html } = result.value;
+    const { teamId: t, html } = result;
     const $ = cheerio.load(html);
     const lURL = BASE_URL + $(".BackLinks a").attr("href");
     const lID = `${getUrlParam(lURL, "LeagueId")}-${getUrlParam(lURL, "DivisionId")}`;
