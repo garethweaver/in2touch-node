@@ -1,6 +1,7 @@
 require("dotenv-safe").config();
 const cheerio = require("cheerio");
 const sha1 = require("sha1");
+const pLimit = require("p-limit");
 const admin = require("firebase-admin");
 const { cert, getApp, deleteApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
@@ -12,6 +13,8 @@ const BASE_URL = "https://in2touch.spawtz.com";
 process.env.GCLOUD_PROJECT = process.env.PROJECT_ID;
 // Set gaxios (used by google-auth-library) to have minimal retries
 process.env.GAXIOS_RETRY = "0"; // Disable automatic retries in gaxios
+// Limit concurrent HTTP requests to avoid overwhelming the server
+const limit = pLimit(5); // Max 5 concurrent requests
 
 const getLeagueType = (leagueName) => {
   if (leagueName.toLowerCase().indexOf("mixed")) {
@@ -52,15 +55,29 @@ const getLeagues = async () => {
 
 const getLeagueData = async (leagues) => {
   const teams = {};
+  const leagueIds = Object.keys(leagues);
 
-  for (const l in leagues) {
-    const html = await getData(leagues[l].standingUrl);
-    if (!html) {
-      console.log(
-        `⚠️ Error getting data for ${leagues[l].name} ${leagues[l].id}`,
-      );
-      continue;
-    }
+  // Fetch all leagues in parallel with concurrency limit
+  const results = await Promise.allSettled(
+    leagueIds.map((l) =>
+      limit(async () => {
+        const html = await getData(leagues[l].standingUrl);
+        if (!html) {
+          console.log(
+            `⚠️ Error getting data for ${leagues[l].name} ${leagues[l].id}`,
+          );
+          return null;
+        }
+        return { leagueId: l, html };
+      }),
+    ),
+  );
+
+  // Process results
+  for (const result of results) {
+    if (result.status === "rejected" || !result.value) continue;
+
+    const { leagueId: l, html } = result.value;
     const $ = cheerio.load(html);
     const leagueTableRows = $('.STTable tr[class^="STRow"]');
 
@@ -117,14 +134,29 @@ const getLeagueData = async (leagues) => {
 };
 
 const getTeamData = async (teamsData, leagueList) => {
-  for (const t in teamsData) {
-    const html = await getData(teamsData[t].profileUrl);
-    if (!html) {
-      console.log(
-        `⚠️ Error getting data for ${teamsData[t].name} ${teamsData[t].id}`,
-      );
-      continue;
-    }
+  const teamIds = Object.keys(teamsData);
+
+  // Fetch all team pages in parallel with concurrency limit
+  const results = await Promise.allSettled(
+    teamIds.map((t) =>
+      limit(async () => {
+        const html = await getData(teamsData[t].profileUrl);
+        if (!html) {
+          console.log(
+            `⚠️ Error getting data for ${teamsData[t].name} ${teamsData[t].id}`,
+          );
+          return null;
+        }
+        return { teamId: t, html };
+      }),
+    ),
+  );
+
+  // Process results
+  for (const result of results) {
+    if (result.status === "rejected" || !result.value) continue;
+
+    const { teamId: t, html } = result.value;
     const $ = cheerio.load(html);
     const lURL = BASE_URL + $(".BackLinks a").attr("href");
     const lID = `${getUrlParam(lURL, "LeagueId")}-${getUrlParam(lURL, "DivisionId")}`;
@@ -174,22 +206,34 @@ const saveToFb = async (t, l, td) => {
   const db = getDatabase();
 
   console.log(`Saving ${Object.keys(t).length} teams...`);
-  for (id in t) {
-    const teamRef = db.ref("teams/" + id);
-    await withTimeout(teamRef.set(t[id]));
-  }
+  await Promise.all(
+    Object.keys(t).map((id) =>
+      limit(() => {
+        const teamRef = db.ref("teams/" + id);
+        return withTimeout(teamRef.set(t[id]));
+      }),
+    ),
+  );
 
   console.log(`Saving ${Object.keys(td).length} team data...`);
-  for (id in td) {
-    const teamDataRef = db.ref("team-data/" + id);
-    await withTimeout(teamDataRef.set(td[id]));
-  }
+  await Promise.all(
+    Object.keys(td).map((id) =>
+      limit(() => {
+        const teamDataRef = db.ref("team-data/" + id);
+        return withTimeout(teamDataRef.set(td[id]));
+      }),
+    ),
+  );
 
   console.log(`Saving ${Object.keys(l).length} leagues...`);
-  for (id in l) {
-    const leaguesRef = db.ref("leagues/" + id);
-    await withTimeout(leaguesRef.set(l[id]));
-  }
+  await Promise.all(
+    Object.keys(l).map((id) =>
+      limit(() => {
+        const leaguesRef = db.ref("leagues/" + id);
+        return withTimeout(leaguesRef.set(l[id]));
+      }),
+    ),
+  );
 
   const configRef = db.ref("config");
   await withTimeout(
