@@ -1,35 +1,17 @@
 require("dotenv-safe").config();
-const axios = require("axios");
 const cheerio = require("cheerio");
 const sha1 = require("sha1");
 const admin = require("firebase-admin");
+const { cert, getApp, deleteApp } = require("firebase-admin/app");
+const { getDatabase } = require("firebase-admin/database");
 const FBCONFIG = require("./fbconfig.js");
+const { httpAgent, getData, withTimeout, getUrlParam } = require("./util.js");
 const BASE_URL = "https://in2touch.spawtz.com";
 
-const getData = async (url) => {
-  try {
-    console.info(`Requesting ${url}`);
-    const response = await axios(url);
-    return response.data;
-  } catch (e) {
-    if (e?.response) {
-      console.error(
-        "⚠️",
-        e.response.status,
-        e.response.statusText,
-        e.config.url,
-      );
-    } else {
-      console.error(e);
-    }
-    return null;
-  }
-};
-
-const getUrlParam = (url, param) => {
-  const u = new URL(url);
-  return u.searchParams.get(param);
-};
+// Disable excessive retries in Google Auth Library
+process.env.GCLOUD_PROJECT = process.env.PROJECT_ID;
+// Set gaxios (used by google-auth-library) to have minimal retries
+process.env.GAXIOS_RETRY = "0"; // Disable automatic retries in gaxios
 
 const getLeagueType = (leagueName) => {
   if (leagueName.toLowerCase().indexOf("mixed")) {
@@ -188,32 +170,36 @@ const getTeamData = async (teamsData, leagueList) => {
   return teamsData;
 };
 
-const saveToFb = async (app, t, l, td) => {
+const saveToFb = async (t, l, td) => {
+  const db = getDatabase();
+
   console.log(`Saving ${Object.keys(t).length} teams...`);
   for (id in t) {
-    const teamRef = app.database().ref("teams/" + id);
-    await teamRef.set(t[id]);
+    const teamRef = db.ref("teams/" + id);
+    await withTimeout(teamRef.set(t[id]));
   }
 
   console.log(`Saving ${Object.keys(td).length} team data...`);
   for (id in td) {
-    const teamDataRef = app.database().ref("team-data/" + id);
-    await teamDataRef.set(td[id]);
+    const teamDataRef = db.ref("team-data/" + id);
+    await withTimeout(teamDataRef.set(td[id]));
   }
 
   console.log(`Saving ${Object.keys(l).length} leagues...`);
   for (id in l) {
-    const leaguesRef = app.database().ref("leagues/" + id);
-    await leaguesRef.set(l[id]);
+    const leaguesRef = db.ref("leagues/" + id);
+    await withTimeout(leaguesRef.set(l[id]));
   }
 
-  const configRef = app.database().ref("config");
-  await configRef.set({
-    updatedAt: Date.now(),
-    teamsHash: sha1(JSON.stringify(t)),
-    leaguesHash: sha1(JSON.stringify(l)),
-    teamDataHash: sha1(JSON.stringify(td)),
-  });
+  const configRef = db.ref("config");
+  await withTimeout(
+    configRef.set({
+      updatedAt: Date.now(),
+      teamsHash: sha1(JSON.stringify(t)),
+      leaguesHash: sha1(JSON.stringify(l)),
+      teamDataHash: sha1(JSON.stringify(td)),
+    }),
+  );
 };
 
 const init = async () => {
@@ -225,16 +211,27 @@ const init = async () => {
   console.log("Getting individual teams data...");
   teamsData = await getTeamData(teamsData, leagueList);
 
-  const app = admin.initializeApp({
-    credential: admin.credential.cert(FBCONFIG),
-    databaseURL: process.env.DATABASE_URL,
-  });
+  console.log("Initializing Firebase...");
+  // Wrap Firebase initialization with timeout to prevent hanging on auth
+  await withTimeout(
+    admin.initializeApp({
+      credential: cert(FBCONFIG),
+      databaseURL: process.env.DATABASE_URL,
+      httpAgent,
+    }),
+    60000,
+  );
 
   console.log("Saving to firebase...");
-  await saveToFb(app, teams, leagues, teamsData);
+  await saveToFb(teams, leagues, teamsData);
   console.log("Closing connection to firebase...");
-  await app.delete();
+  await deleteApp(getApp());
   console.log("✅ All done!");
+  process.exit(0);
 };
 
-init();
+// Run with 60-minute timeout (fail fast instead of retrying for hours)
+withTimeout(init, 60 * 60 * 1000).catch((error) => {
+  console.error("❌ Fatal error:", error);
+  process.exit(1);
+});
