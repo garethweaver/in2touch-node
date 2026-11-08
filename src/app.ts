@@ -89,11 +89,11 @@ const getLeagueData = async (
     const leagueTableRows = $('.STTable tr[class^="STRow"]');
 
     leagueTableRows.each((i, row) => {
-      const id = getUrlParam(
+      const id = `${getUrlParam(
         BASE_URL + "/" + $(row).find(".STTeamCell a").attr("href"),
         "TeamId",
-      );
-      const key = `${id}`;
+      )}`;
+      const key = id;
       const name = $(row).find(".STTeamCell").text();
       const profileUrl = `${BASE_URL}${$(row).find(".STTeamCell a").attr("href")}`;
 
@@ -102,13 +102,13 @@ const getLeagueData = async (
         id,
         profileUrl,
         played: toNumber($(row).find("td:nth-child(3)").text()),
-        won: $(row).find("td:nth-child(4)").text(),
+        won: toNumber($(row).find("td:nth-child(4)").text()),
         lost: toNumber($(row).find("td:nth-child(5)").text()),
         drawn: toNumber($(row).find("td:nth-child(6)").text()),
-        pointsFor: $(row).find("td:nth-child(9)").text(),
-        pointsAgainst: $(row).find("td:nth-child(10)").text(),
-        pointsBonus: $(row).find("td:nth-child(12)").text(),
-        points: $(row).find("td:nth-child(13) b").text(),
+        pointsFor: toNumber($(row).find("td:nth-child(9)").text()),
+        pointsAgainst: toNumber($(row).find("td:nth-child(10)").text()),
+        pointsBonus: toNumber($(row).find("td:nth-child(12)").text()),
+        points: toNumber($(row).find("td:nth-child(13) b").text()),
       });
 
       // there is a team entered into multiple leagues so create multiple db entries
@@ -168,7 +168,7 @@ const getTeamData = async (
     const lURL = BASE_URL + $(".BackLinks a").attr("href");
     const lID = `${getUrlParam(lURL, "LeagueId")}-${getUrlParam(lURL, "DivisionId")}`;
     const league = leagueList[lID];
-    const leagueName = league ? league.name : false;
+    const leagueName = league ? league.name : null;
 
     const fixturesTable = $(".TFTable").first();
     const team: TeamData = teamsData[t];
@@ -194,10 +194,10 @@ const getTeamData = async (
           pitch: $(row).find("td:nth-child(3)").text(),
           leagueName,
           vs: $(row).find("td:nth-child(4)").text(),
-          vsId: getUrlParam(
+          vsId: `${getUrlParam(
             BASE_URL + "/" + $(row).find("td:nth-child(4) a").attr("href"),
             "TeamId",
-          ),
+          )}`,
           result: $(row).find("td:nth-child(5)").text(),
         });
       }

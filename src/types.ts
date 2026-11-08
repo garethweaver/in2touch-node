@@ -1,15 +1,15 @@
 export interface LeagueTeam {
   name: string;
-  id: string | null;
+  id: string;
   profileUrl: string;
   played: number;
-  won: string;
+  won: number;
   lost: number;
   drawn: number;
-  pointsFor: string;
-  pointsAgainst: string;
-  pointsBonus: string;
-  points: string;
+  pointsFor: number;
+  pointsAgainst: number;
+  pointsBonus: number;
+  points: number;
 }
 
 export interface League {
@@ -39,9 +39,9 @@ export interface Fixture {
   timestamp: number;
   grading: boolean;
   pitch: string;
-  leagueName: string | false;
+  leagueName: string | null;
   vs: string;
-  vsId: string | null;
+  vsId: string;
   result: string;
 }
 
