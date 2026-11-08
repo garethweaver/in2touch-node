@@ -20,6 +20,12 @@ process.env.GCLOUD_PROJECT = process.env.PROJECT_ID;
 // Set gaxios (used by google-auth-library) to have minimal retries
 process.env.GAXIOS_RETRY = "0"; // Disable automatic retries in gaxios
 
+// Parse a scraped table cell as a number ("" -> 0)
+const toNumber = (text: string): number => {
+  const n = Number(text.trim());
+  return Number.isFinite(n) ? n : 0;
+};
+
 const getLeagueType = (leagueName: string): string => {
   // normalise curly apostrophes so "Men’s" matches "men's"
   const name = leagueName.toLowerCase().replace(/[\u2018\u2019]/g, "'");
@@ -95,10 +101,10 @@ const getLeagueData = async (
         name,
         id,
         profileUrl,
-        played: $(row).find("td:nth-child(3)").text(),
+        played: toNumber($(row).find("td:nth-child(3)").text()),
         won: $(row).find("td:nth-child(4)").text(),
-        lost: $(row).find("td:nth-child(5)").text(),
-        drawn: $(row).find("td:nth-child(6)").text(),
+        lost: toNumber($(row).find("td:nth-child(5)").text()),
+        drawn: toNumber($(row).find("td:nth-child(6)").text()),
         pointsFor: $(row).find("td:nth-child(9)").text(),
         pointsAgainst: $(row).find("td:nth-child(10)").text(),
         pointsBonus: $(row).find("td:nth-child(12)").text(),

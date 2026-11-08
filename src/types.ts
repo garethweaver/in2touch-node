@@ -2,10 +2,10 @@ export interface LeagueTeam {
   name: string;
   id: string | null;
   profileUrl: string;
-  played: string;
+  played: number;
   won: string;
-  lost: string;
-  drawn: string;
+  lost: number;
+  drawn: number;
   pointsFor: string;
   pointsAgainst: string;
   pointsBonus: string;
