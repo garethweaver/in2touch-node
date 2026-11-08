@@ -1,10 +1,8 @@
-require("dotenv-safe").config();
-const FBCONFIG = require("./fbconfig.js");
-const admin = require("firebase-admin");
-const { cert, getApp, deleteApp } = require("firebase-admin/app");
-const { getDatabase } = require("firebase-admin/database");
+import FBCONFIG from "./fbconfig.ts";
+import { initializeApp, cert, getApp, deleteApp } from "firebase-admin/app";
+import { getDatabase } from "firebase-admin/database";
 
-admin.initializeApp({
+initializeApp({
   credential: cert(FBCONFIG),
   databaseURL: process.env.DATABASE_URL,
 });

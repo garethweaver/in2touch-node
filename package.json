@@ -1,10 +1,11 @@
 {
   "name": "in2touch-node",
   "version": "1.0.0",
-  "main": "./src/app.js",
+  "main": "./src/app.ts",
   "scripts": {
-    "start": "node ./src/app.js",
-    "reset": "node ./src/reset.js"
+    "start": "node ./src/app.ts",
+    "reset": "node ./src/reset.ts",
+    "typecheck": "tsc"
   },
   "license": "MIT",
   "dependencies": {
@@ -15,11 +16,15 @@
     "sha1": "^1.1.1"
   },
   "engines": {
-    "node": "22.x"
+    "node": ">=24"
   },
   "devDependencies": {
+    "@types/node": "^24",
+    "@types/sha1": "^1.1.5",
     "dotenv": "^17.4.2",
-    "dotenv-safe": "^9.1.0"
+    "dotenv-safe": "^9.1.0",
+    "typescript": "^7.0.2"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "type": "module"
 }
